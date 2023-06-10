@@ -10,7 +10,7 @@ get_names_parties <- . %>%
     html_nodes("th a") %>%
     html_attr("href")
 
-# 2019 elections
+# 2019 April elections
 
 url <- 'https://en.wikipedia.org/wiki/Opinion_polling_for_the_April_2019_Spanish_general_election'
 
@@ -65,4 +65,4 @@ main_results <- raw_tables %>%
     select(date,!c(Year,Date))
 
 
-main_results %>% write_csv("./Data/2019_national_polls.csv")
+main_results %>% write_csv("./Data/2019_April_national_polls.csv")
