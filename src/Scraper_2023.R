@@ -4,11 +4,12 @@ library(purrr)
 library(naniar)
 library(stringi)
 library(lubridate)
+library(janitor)
 
-get_names_parties <- . %>%
-    html_node("tr") %>%
-    html_nodes("th a") %>%
-    html_attr("href")
+
+source("./src/functions.R")
+source("./src/dictionary.R")
+
 
 # 2023 April elections
 
@@ -17,42 +18,17 @@ url_2119 <- 'https://en.wikipedia.org/wiki/Nationwide_opinion_polling_for_the_20
 
 # 2023, first tranche (2019 to 2021)
 
-raw_tables <- url_2119 %>%
-    read_html() %>%
-    html_nodes(".wikitable") %>%
-    html_table(header = NA,
-    na.strings = c("?","–", "—", "")) %>%
-    head(3)
+# we set the renaming table for the this period
+dict_2021 <- party_dictionary %>% filter(table_year == "2019_2021")
+rename_list <- setNames(dict_2021$long, dict_2021$short)
 
-parties <- url_2119 %>%
-    read_html() %>%
-    html_nodes(".wikitable") %>%
-    head(3) %>%
-    map(get_names_parties) %>%
-    map(str_remove,"/wiki/")
+this_many <- 3 # the parameter determines the number of tables to consider
 
-for (i in 1:3) {
-   names(raw_tables[[i]]) <- c("Firm","Date","Sample","Turnout",parties[[i]],"Lead")
-   raw_tables[[i]] <- raw_tables[[i]] %>% mutate_at(parties[[i]],as.character)
-}
 
-get_percentage <- function(myvalue) {
-    if(is.na(myvalue)){return(NA)}
-    if(!stri_detect(myvalue, fixed = ".")){return(NA)}
-    if (str_detect(myvalue, "–")) {
-        low <- myvalue %>% str_extract("([0-9]+.\\d)–", group = 1) %>% as.numeric
-        upp <- myvalue %>% str_extract("–([0-9]+.\\d)", group = 1) %>% as.numeric
-        mid <- (low+upp)/2
-        return(mid)
-    } else {
-        mid <- myvalue %>% str_extract("[0-9]+.\\d") %>% as.numeric
-        return(mid)
-    }
-}
-
-get_date <- function(myvalue){
-    myvalue %>% str_extract("\\d{1,2}\\s\\w{3}$")
-}
+# scrape the row table
+raw_tables <- url_2119 %>% get_tables(this_many) 
+parties <- url_2119 %>% get_parties(this_many)
+raw_tables <- set_raw_names(this_many,raw_tables,parties)
 
 table_1921 <- raw_tables %>%
     map(filter, is.na(Sample) | Sample != "Sample size") %>%
@@ -63,51 +39,26 @@ table_1921 <- raw_tables %>%
     mutate(day_month = Date %>% get_date) %>%
     mutate(year = 2022 - as.numeric(Year)) %>%
     unite("date", day_month, year, sep = " ") %>%
-    mutate(date = dmy(date),
-    Sample = parse_number(Sample),
-    Turnout = parse_number(Turnout)) %>%
-    select(date,!c(Year,Date))
+    mutate(
+        date = dmy(date),
+        Sample = parse_number(Sample),
+        Turnout = parse_number(Turnout)) %>%
+    select(date,!c(Year,Date)) %>%
+    rename(!!!rename_list)
 
 table_1921 %>% write_csv("./Data/2019_2021_national_polls.csv")
 
 # 2023, first tranche (2019 to 2021)
 
-raw_tables <- url_2321 %>%
-    read_html() %>%
-    html_nodes(".wikitable") %>%
-    html_table(header = NA,
-    na.strings = c("?","–", "—", "")) %>%
-    head(3)
+this_many <- 3
+dict_2021 <- party_dictionary %>% filter(table_year == "2021_2023")
+rename_list <- setNames(dict_2021$long, dict_2021$short)
 
-parties <- url_2321 %>%
-    read_html() %>%
-    html_nodes(".wikitable") %>%
-    head(3) %>%
-    map(get_names_parties) %>%
-    map(str_remove,"/wiki/")
+raw_tables <- url_2321 %>% get_tables(3)
 
-for (i in 1:3) {
-   names(raw_tables[[i]]) <- c("Firm","Date","Sample","Turnout",parties[[i]],"Lead")
-   raw_tables[[i]] <- raw_tables[[i]] %>% mutate_at(parties[[i]],as.character)
-}
+parties <- url_2321 %>% get_parties(3)
 
-get_percentage <- function(myvalue) {
-    if(is.na(myvalue)){return(NA)}
-    if(!stri_detect(myvalue, fixed = ".")){return(NA)}
-    if (str_detect(myvalue, "–")) {
-        low <- myvalue %>% str_extract("([0-9]+.\\d)–", group = 1) %>% as.numeric
-        upp <- myvalue %>% str_extract("–([0-9]+.\\d)", group = 1) %>% as.numeric
-        mid <- (low+upp)/2
-        return(mid)
-    } else {
-        mid <- myvalue %>% str_extract("[0-9]+.\\d") %>% as.numeric
-        return(mid)
-    }
-}
-
-get_date <- function(myvalue){
-    myvalue %>% str_extract("\\d{1,2}\\s\\w{3}$")
-}
+raw_tables <- set_raw_names(3, raw_tables, parties)
 
 case_year <- function(year) {
   case_when(
@@ -128,6 +79,7 @@ table_2321 <- raw_tables %>%
     mutate(date = dmy(date),
     Sample = parse_number(Sample),
     Turnout = parse_number(Turnout)) %>%
-    select(date,!c(Year,Date))
+    select(date,!c(Year,Date)) %>%
+    rename(!!!rename_list)
 
 table_2321 %>% write_csv("./Data/2021_2023_national_polls.csv")
