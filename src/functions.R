@@ -56,3 +56,13 @@ get_percentage <- function(myvalue, pattern_low_date = "([0-9]+.\\d)–", patter
 get_date <- function(myvalue, pattern = "\\d{1,2}\\s\\w{3}$"){
     myvalue %>% str_extract(pattern)
 }
+
+clean_up_names <- function(names){
+    names_clean <- names %>%
+    str_replace_all("[^[a-zA-Z]?]", "") %>%
+    tolower() %>%
+    stringi::stri_trans_general("Latin-ASCII")
+
+    return(names_clean)
+}
+
