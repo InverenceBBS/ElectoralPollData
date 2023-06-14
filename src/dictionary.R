@@ -1,41 +1,9 @@
-party_dictionary <- tribble(~table_year, ~short, ~long,
-"2019_2021", "psoe", "Spanish_Socialist_Workers%27_Party",
-"2019_2021", "pp", "People%27s_Party_(Spain)",
-"2019_2021", "vox", "Vox_(political_party)",
-"2019_2021", "upodemos", "Unidas_Podemos",
-"2019_2021", "cs", "Citizens_(Spanish_political_party)",
-"2019_2021", "erc", "Republican_Left_of_Catalonia%E2%80%93Sovereigntists",
-"2019_2021", "mas", "M%C3%A1s_Pa%C3%ADs",
-"2019_2021", "jxcat20", "Together_for_Catalonia_(2020)",
-"2019_2021", "pnv", "Basque_Nationalist_Party",
-"2019_2021", "bildu", "EH_Bildu",
-"2019_2021", "cup", "Popular_Unity_Candidacy",
-"2019_2021", "ccnc", "Canarian_Coalition%E2%80%93New_Canaries",
-"2019_2021", "bng", "Galician_Nationalist_Bloc",
-"2019_2021", "na", "Navarra_Suma",
-"2019_2021", "prc", "Regionalist_Party_of_Cantabria",
-"2019_2021", "te", "Teruel_Existe",
-"2019_2021", "jxcat17", "Together_for_Catalonia_(2017)",
-"2021_2023", "psoe", "Spanish_Socialist_Workers%27_Party",
-"2021_2023", "pp", "People%27s_Party_(Spain)",
-"2021_2023", "vox", "Vox_(political_party)",
-"2021_2023", "sumar", "Sumar_(electoral_platform)",
-"2021_2023", "erc", "Republican_Left_of_Catalonia%E2%80%93Sovereigntists",
-"2021_2023", "jxcat20", "Together_for_Catalonia_(2020)",
-"2021_2023", "pnc", "Basque_Nationalist_Party",
-"2021_2023", "bildu", "EH_Bildu",
-"2021_2023", "cup", "Popular_Unity_Candidacy",
-"2021_2023", "cc", "Canarian_Coalition",
-"2021_2023", "bng", "Galician_Nationalist_Bloc",
-"2021_2023", "nap", "Navarrese_People%27s_Union",
-"2021_2023", "emp", "Empty_Spain",
-"2021_2023", "podemos", "Podemos_(Spanish_political_party)",
-"2021_2023", "cs", "Citizens_(Spanish_political_party)",
-"2021_2023", "ccnc", "Canarian_Coalition%E2%80%93New_Canaries",
-"2021_2023", "prc", "Regionalist_Party_of_Cantabria",
-"2021_2023", "upodemos", "Unidas_Podemos",
-"2021_2023", "mas", "M%C3%A1s_Pa%C3%ADs"
-)
+library(tidyverse)
 
+party_names_df <- read_csv("./src/party_names.csv")
 
-
+names_to_change <- function(current_names, names_df = party_names_df){
+    this_names <- names_df %>% filter(party %in% current_names)
+    change_names <- setNames(this_names$party, this_names$name)
+    return(change_names)
+}

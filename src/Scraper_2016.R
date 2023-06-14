@@ -51,15 +51,21 @@ get_date <- function(myvalue){
     myvalue %>% str_extract("\\d{1,2}\\s\\w{3}\\s\\d{4}$")
 }
 
+change_names <- names_to_change(names(raw_tables[[1]]))
+
 main_results <- raw_tables[[1]] %>%
     filter(is.na(Sample) | Sample != "Sample size") %>%
     filter(!is.na(Firm)) %>%
     rowwise() %>%
     mutate(across(parties[[1]], get_percentage)) %>%
     mutate(date = Date %>% get_date %>% dmy) %>%
+    mutate(Firm = Firm %>% clean_up_names) %>%
     mutate(
         Sample = parse_number(Sample),
         Turnout = parse_number(Turnout)) %>%
-        select(date,!Date)
+        select(date,!Date) %>%
+    pivot_longer(-c(Firm,date,Sample,Turnout)) %>%
+    mutate(name = as_factor(name),
+           name = fct_recode(name, !!!change_names))
 
 main_results %>% write_csv("./Data/2016_national_polls.csv")

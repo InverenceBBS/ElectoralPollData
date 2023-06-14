@@ -10,6 +10,8 @@ get_names_parties <- . %>%
     html_nodes("th a") %>%
     html_attr("href")
 
+source("./src/dictionary.R")
+
 # 2019 November elections
 
 url <- 'https://en.wikipedia.org/wiki/Opinion_polling_for_the_November_2019_Spanish_general_election'
@@ -51,15 +53,23 @@ get_date <- function(myvalue){
     myvalue %>% str_extract("\\d{1,2}\\s\\w{3}$")
 }
 
+change_names <- names_to_change(names(raw_tables[[1]]))
+
 main_results <- raw_tables[[1]] %>%
     filter(is.na(Sample) | Sample != "Sample size") %>%
     filter(!is.na(Firm)) %>%
     rowwise() %>%
     mutate(across(parties[[1]], get_percentage)) %>%
+    mutate(Firm = Firm %>% clean_up_names) %>%
     mutate(date = Date %>% get_date %>% paste("2019") %>% dmy) %>%
     mutate(
         Sample = parse_number(Sample),
         Turnout = parse_number(Turnout)) %>%
-        select(date,!Date)
+        select(date,!Date) %>%
+    pivot_longer(-c(Firm,date,Sample,Turnout,Lead)) %>%
+    mutate(name = as_factor(name),
+           name = fct_recode(name, !!!change_names))
+
+
 
 main_results %>% write_csv("./Data/2019_November_national_polls.csv")
