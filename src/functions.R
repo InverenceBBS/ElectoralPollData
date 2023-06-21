@@ -1,10 +1,35 @@
 get_names_parties <- function(html){
     party_names <- html %>%
-    html_node("tr") %>%
-    html_nodes("th a") %>%
-    html_attr("href")
+    html_node("tr")  %>%
+    html_nodes("th") %>%
+    map_chr(extract_name_from_title)
+
+    party_names <- party_names[nzchar(party_names)]
 
     return(party_names)
+}
+
+extract_name_from_title <- function(html){
+    name_s <- html %>%
+        html_nodes("a") %>%
+        html_attr("href") %>%
+        str_remove("/wiki/")
+    
+    L <- length(name_s)
+
+    if(L > 1){
+        print(name_s)
+    }
+        
+    name <- name_s %>%
+    paste(collapse = " ")
+
+    if(L > 1){
+        print(name)
+    }
+
+    return(name)
+
 }
 
 get_tables <- function(url, head_n){
@@ -39,7 +64,7 @@ set_raw_names <- function(head_n, rawtabs, parts){
 }
 
 
-get_percentage <- function(myvalue, pattern_low_date = "([0-9]+.\\d)–", pattern_up_date = "([0-9]+.\\d)–", pattern_one_date = "[0-9]+.\\d") {
+get_percentage <- function(myvalue, pattern_low_date = "([0-9]+.\\d)–", pattern_up_date = "–([0-9]+.\\d)", pattern_one_date = "[0-9]+.\\d") {
     if(is.na(myvalue)){return(NA)}
     if(!stri_detect(myvalue, fixed = ".")){return(NA)}
     if (str_detect(myvalue, "–")) {

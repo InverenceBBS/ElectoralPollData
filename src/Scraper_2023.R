@@ -55,17 +55,16 @@ table_1921 %>% write_csv("./Data/2019_2021_national_polls.csv")
 
 # 2023, first tranche (2019 to 2021)
 
-this_many <- 3
+this_many <- 4
 
-raw_tables <- url_2321 %>% get_tables(3)
+raw_tables <- url_2321 %>% get_tables(this_many)
+parties <- url_2321 %>% get_parties(this_many)
 
-parties <- url_2321 %>% get_parties(3)
-
-raw_tables <- set_raw_names(3, raw_tables, parties)
+raw_tables <- set_raw_names(this_many, raw_tables, parties)
 
 case_year <- function(year) {
   case_when(
-    year == "3" ~ "2022",
+    year == "4" ~ "2022",
     .default = "2023"
   )
 }
