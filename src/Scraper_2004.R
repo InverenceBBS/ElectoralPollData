@@ -28,7 +28,7 @@ main_results <- raw_tables[[1]] %>%
     filter(!is.na(Firm)) %>%
     rowwise() %>%
     mutate(across(all_of(parties_vec), get_percentage)) %>%
-    mutate(date = Date %>% get_date %>% dmy) %>%
+    mutate(date = Date %>% get_date(pattern = date_pattern) %>% dmy) %>%
     mutate(Firm = Firm %>% clean_up_names) %>%
     mutate(
         Sample = parse_number(Sample),
